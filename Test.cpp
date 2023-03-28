@@ -32,12 +32,12 @@ TEST_CASE("3.Play turn after game over by playTurn only")
     Player p1("Alice");
     Player p2("Bob");
     Game game(p1, p2);
-    int maxNumOfTurns = 26;
     // What will happen if the players keep playing after the end?
-    for (int i = 0; i < maxNumOfTurns + 1; i++)
+    while(p1.stacksize() != 0)
     {
         game.playTurn();
     }
+    CHECK_THROWS(game.playTurn());
     // The game over, which means the stacks is empty (not negative)
     CHECK(p1.stacksize() == 0);
     CHECK(p2.stacksize() == 0);
@@ -50,8 +50,8 @@ TEST_CASE("4.Play turn/All after game over2 by playAll")
     Game game(p1, p2);
     game.playAll();
     // Second time
-    game.playAll();
-    game.playTurn();
+    CHECK_THROWS(game.playAll());
+    CHECK_THROWS(game.playTurn());
     // The game over which means one of the stack is empty (not negative)
     CHECK(p1.stacksize() == 0);
     CHECK(p2.stacksize() == 0);
@@ -88,14 +88,15 @@ TEST_CASE("8.Check if printLastTurn() prints the names of the players to the ter
 {
     Player p1("Alice");
     Player p2("Bob");
-    Game game1(p1, p2);
+    Game game(p1, p2);
+    game.playAll();
 
     stringstream out;
     streambuf *old_cout = cout.rdbuf(out.rdbuf());
 
     // Call the function
-    game1.printLastTurn();
-    // Reset
+    game.printLastTurn();
+
     cout.rdbuf(old_cout);
 
     // Check that the output contains what we expect
@@ -115,12 +116,20 @@ TEST_CASE("9.Check if printWiner() prints the name of one of the players to the 
 
     // Call the function
     game.printWiner();
-
+    string winner = out.str();
     cout.rdbuf(old_cout);
 
     // Check that the output contains what we expect
-    CHECK(((out.str().find("Alice") != string::npos) ||
-           (out.str().find("Bob") != string::npos)));
+    if (p1.cardesTaken() > p2.cardesTaken())
+    {
+        CHECK(winner.find("Alice") != string::npos);
+    }
+    else if (p1.cardesTaken() < p2.cardesTaken())
+    {
+        CHECK(winner.find("Bob") != string::npos);
+    }
+    
+    
 }
 
 int is_draw_word_count_equal_to_26(const string &str)
@@ -130,7 +139,7 @@ int is_draw_word_count_equal_to_26(const string &str)
     transform(lowercase_str.begin(), lowercase_str.end(), lowercase_str.begin(), ::tolower);
 
     // Count the number of lines
-    int num_lines = 1;
+    int num_lines = 0;
     for (char c : lowercase_str)
     {
         if (c == '\n')
@@ -165,9 +174,11 @@ TEST_CASE("10.Check if printLog() prints one line per turn to the terminal")
     game.printLog();
 
     cout.rdbuf(old_cout);
+    int num_of_turns = is_draw_word_count_equal_to_26(out.str());
 
-    // Check if the total count is equal to 26 which is the max num of turns
-    CHECK(is_draw_word_count_equal_to_26(out.str()) == 26);
+    // Check if the total count is equal to 26 which is the max num of turns, 
+    // in the case of draw in the end could be 27 or 28
+    CHECK((num_of_turns >= 26 && num_of_turns <= 28));
 }
 
 TEST_CASE("11.Check if printStats() prints something to the terminal")
@@ -227,15 +238,17 @@ TEST_CASE("14.Shuffle is fine, 2 games not the same")
     stringstream out1, out2;
     streambuf *old_cout = cout.rdbuf(out1.rdbuf());
 
-    game1.printStats();
-    string game_1_stats = out1.str();
+    // Call the function
+    game1.printLog();
+    string game_1 = out1.str();
+    
     cout.rdbuf(out2.rdbuf());
-
-    game2.printStats();
-    string game_2_stats = out2.str();
+    game2.printLog();
+    string game_2 = out2.str();
     cout.rdbuf(old_cout);
+
     // The probability of 2 identical games is almost zero
-    CHECK(game_1_stats != game_2_stats);
+    CHECK(game_1.compare(game_2) != 0);
 }
 
 // Keep playing until you have a draw at the last turn, 
@@ -269,16 +282,17 @@ TEST_CASE("15.Draw is happing at the last turn")
                 // Call the function
                 game.printLastTurn();
                 cout.rdbuf(old_cout);
-                // Lower case the all string, maybe a student wrote DRaw, or drAW.
+                
                 string lowercase_str = out.str();
+                // Lower case the all string, maybe a student wrote DRaw, or drAW.
                 transform(lowercase_str.begin(), lowercase_str.end(), lowercase_str.begin(), ::tolower);
                 // The last turn was draw
                 if (lowercase_str.find("draw") != string::npos)
                 {
                     flag = false;
-                    CHECK((p1.stacksize() == 0 == p2.stacksize()));
+                    CHECK((p1.stacksize() == 0));
                 }
-                
+                break;
             }
         }
     }
@@ -299,18 +313,19 @@ TEST_CASE("17.Check if printLastTurn() prints the same as printLog() after one t
     Player p1("Alice");
     Player p2("Bob");
     Game game(p1, p2);
-
+    game.playTurn();
     stringstream out1, out2;
     streambuf *old_cout = cout.rdbuf(out1.rdbuf());
 
+    // Call the function
     game.printLastTurn();
     string game_lastTurn = out1.str();
+    
     cout.rdbuf(out2.rdbuf());
-
     game.printLog();
     string game_log = out2.str();
     cout.rdbuf(old_cout);
 
     // Check that the output contains what we expect
-    CHECK(out1.str() == out2.str());
+    CHECK(game_lastTurn.compare(game_log) == 0);
 }
