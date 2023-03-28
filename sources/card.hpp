@@ -9,14 +9,13 @@ namespace ariel
     {
     private:
         string m_suit;
-        int m_rank;
+        size_t m_rank;
 
     public:
-        Card() = default;
-        Card(string str, int num);
+        Card(string str, size_t num);
         //~Card();
         std::string getSuit() const;
-        int getRank();
+        size_t getRank();
         std::string getRankStr() const;
     };
 }

@@ -1,7 +1,7 @@
 #include "card.hpp"
 using namespace ariel;
 
-Card::Card(std::string suit, int rank)
+Card::Card(std::string suit, size_t rank)
 {
     m_suit = suit;
     m_rank = rank;
@@ -14,7 +14,7 @@ std::string Card::getSuit() const
 {
     return m_suit;
 }
-int Card::getRank()
+size_t Card::getRank()
 {
     return m_rank;
 } 

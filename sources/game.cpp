@@ -72,14 +72,12 @@ void Game::dealCards()
 void Game::playTurn()
 {
     bool flag = true;
-    Card c1;
-    Card c2;
     string log = "";
     std::vector<Card> deck;
     while (flag)
     {
-        c1 = p1.poolCard();
-        c2 = p2.poolCard();
+        Card c1 = p1.poolCard();
+        Card c2 = p2.poolCard();
         deck.emplace_back(c1);
         deck.emplace_back(c2);
         log += p1.getName() + " played " + c1.getRankStr() + " of " + c1.getSuit() + " " +
@@ -200,7 +198,7 @@ void Game::printStats()
     cout << "Second player won " + to_string(secondWon) + " times" << endl;
     int n = sizeof(rates) / sizeof(rates[0]);
     int max_val = rates[0];
-    for (int i = 1; i < n; i++) {
+    for (size_t i = 1; i < n; i++) {
         if (rates[i] > max_val) {
             max_val = i;
         }
@@ -227,5 +225,5 @@ void Game::printStats()
         strongest_card = "Ace";
     }
         
-    cout << "The card which won most times is " + strongest_card + " which won " + to_string(rates[max_val]) + " times"<< endl;
+    cout << "The card which won most times is " + strongest_card + " which won " + to_string(rates[(size_t)max_val]) + " times"<< endl;
 }
